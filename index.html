@@ -320,6 +320,40 @@
     #main tbody td:empty{display:none;}
   }
 
+
+  /* --- 新着情報（大手就活サイト風のカード） --- */
+  :root{ --warn:#ffb454; }
+  .feed-meta{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:0 0 18px; font-size:12px; color:var(--ink-soft);}
+  .feed-stale{background:rgba(255,180,84,.12); border:1px solid var(--warn); color:var(--warn); border-radius:8px; padding:8px 12px; font-size:12.5px; margin-bottom:16px;}
+  .feed-note{background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; padding:14px 16px; font-size:13px; line-height:1.8; color:var(--ink-soft); margin-bottom:22px; white-space:pre-wrap;}
+  .feed-h{font-size:16px; font-weight:700; color:var(--ink); margin:26px 0 12px; letter-spacing:-0.01em; display:flex; align-items:center; gap:8px;}
+  .feed-h small{font-size:11.5px; font-weight:400; color:var(--ink-faint);}
+  .feed-pick{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;}
+  .feed-chips{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 16px;}
+  .feed-chip{background:var(--surface); color:var(--ink-soft); border:1px solid var(--border); border-radius:20px; padding:6px 14px; font-size:12.5px; cursor:pointer; font-family:inherit; transition:all .15s ease;}
+  .feed-chip:hover{color:var(--ink); border-color:var(--accent-cyan);}
+  .feed-chip.active{background:var(--accent-cyan); color:#101010; border-color:var(--accent-cyan); font-weight:700;}
+  .feed-list{display:flex; flex-direction:column; gap:12px;}
+  .feed-card{position:relative; background:var(--card); border:1px solid var(--border-soft); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:9px; transition:border-color .15s ease, transform .15s ease;}
+  .feed-card:hover{border-color:var(--accent-cyan); transform:translateY(-1px);}
+  .feed-card.pick{background:var(--surface); border-color:var(--border);}
+  .feed-top{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+  .fbadge{display:inline-block; font-size:11px; font-weight:700; border-radius:5px; padding:2px 8px; letter-spacing:.02em; border:1px solid var(--border); color:var(--ink-soft); background:transparent;}
+  .fbadge.new{background:var(--accent-red); border-color:var(--accent-red); color:#101010;}
+  .fbadge.hot{border-color:var(--accent-red); color:var(--accent-red);}
+  .fbadge.warn{border-color:var(--warn); color:var(--warn);}
+  .fbadge.ok{border-color:var(--accent-lime); color:var(--accent-lime);}
+  .fbadge.mine{background:rgba(94,184,255,.15); border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .feed-company{font-size:12.5px; color:var(--ink-soft);}
+  .feed-title{font-size:15.5px; font-weight:700; line-height:1.55; color:var(--ink); margin:0;}
+  .feed-info{display:flex; flex-wrap:wrap; gap:4px 16px; font-size:12px; color:var(--ink-soft);}
+  .feed-reason{font-size:12.5px; line-height:1.75; color:var(--ink-soft); border-left:2px solid var(--accent-cyan); padding-left:10px; margin:0;}
+  .feed-foot{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:space-between; margin-top:2px;}
+  .feed-src{font-size:11px; color:var(--ink-faint);}
+  .feed-cta{display:inline-block; background:var(--accent-cyan); color:#101010; font-weight:700; font-size:12.5px; text-decoration:none; border-radius:8px; padding:8px 16px;}
+  .feed-cta:hover{filter:brightness(1.1);}
+  @media (max-width:760px){ .feed-pick{grid-template-columns:1fr;} .feed-foot{flex-direction:column; align-items:stretch;} .feed-cta{text-align:center;} }
+
   .login-box{max-width:420px; margin:60px auto; padding:26px; background:var(--card); border:1px solid var(--border); border-radius:12px;}
   .login-box h2{margin:0 0 8px; font-size:17px;}
   .login-box p{margin:0 0 14px; font-size:12.5px; color:var(--ink-soft); line-height:1.7;}
@@ -335,7 +369,8 @@
     <div class="tab-indicator" id="tab-indicator"></div>
     <div class="brand">就活ノート</div>
     <div class="updated" id="updated"></div>
-    <button class="tab-btn active" data-tab="self">自己分析</button>
+    <button class="tab-btn active" data-tab="feed">新着情報</button>
+    <button class="tab-btn" data-tab="self">自己分析</button>
     <button class="tab-btn" data-tab="research">研究</button>
     <button class="tab-btn" data-tab="industry">志望業界</button>
     <button class="tab-btn" data-tab="company">企業一覧</button>
@@ -383,7 +418,10 @@ function animateHeight(el, newHtml){
 }
 
 let data = { self:{}, industries:[], companies:[], interns:[], quals:[], activities:[] };
-let currentTab = 'self';
+let currentTab = 'feed';
+let feedFilter = 'all';
+let feedData = null;
+let feedLoadError = false;
 let sort = { key:'name', dir:'desc' };
 let prVariantIndex = 0;
 let gakuchikaIndex = 0;
@@ -391,6 +429,7 @@ let interviewIndex = 0;
 const calState = { year:new Date().getFullYear(), month:new Date().getMonth() };
 
 const DATA_URL = 'https://api.github.com/repos/yooogeee16/Shukatsu/contents/data.json';
+const FEED_URL = 'https://api.github.com/repos/yooogeee16/Shukatsu/contents/feed.json';
 const TOKEN_KEY = 'shukatsu_read_token';
 let loaded = false;
 
@@ -412,6 +451,20 @@ function showLogin(msg){
   inp.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') go(); });
 }
 
+async function loadFeed(token){
+  feedData = null; feedLoadError = false;
+  try{
+    const r = await fetch(FEED_URL + '?t=' + Date.now(), {
+      cache:'no-store',
+      headers:{ 'Authorization':'Bearer ' + token, 'Accept':'application/vnd.github.raw+json' }
+    });
+    if(r.status === 404) return;
+    if(!r.ok){ feedLoadError = true; return; }
+    const j = await r.json();
+    if(j && Array.isArray(j.items)) feedData = j; else feedLoadError = true;
+  }catch(e){ feedLoadError = true; }
+}
+
 async function init(){
   const token = getToken();
   if(!token){ showLogin(''); return; }
@@ -427,6 +480,7 @@ async function init(){
     }
     if(!r.ok) throw new Error('HTTP ' + r.status);
     data = await r.json();
+    await loadFeed(token);
     loaded = true;
     if(data.updatedAt) document.getElementById('updated').textContent = '最終更新: ' + data.updatedAt;
     const up = document.getElementById('updated');
@@ -444,6 +498,8 @@ async function init(){
 }
 
 document.body.addEventListener('click', (e)=>{
+  const chip = e.target.closest('.feed-chip');
+  if(chip){ feedFilter = chip.dataset.f; render(true); return; }
   const tabBtn = e.target.closest('.tab-btn');
   if(tabBtn){
     if(tabBtn.classList.contains('active')) return;
@@ -529,7 +585,8 @@ window.addEventListener('load', ()=>{
 function render(skipAnim){
   const main = document.getElementById('main');
   if(!loaded){ showLogin(''); return; }
-  if(currentTab==='self') main.innerHTML = renderSelf();
+  if(currentTab==='feed') main.innerHTML = renderFeed();
+  else if(currentTab==='self') main.innerHTML = renderSelf();
   else if(currentTab==='research') main.innerHTML = renderResearch();
   else if(currentTab==='industry') main.innerHTML = renderIndustry();
   else if(currentTab==='company') main.innerHTML = renderCompany();
@@ -584,6 +641,104 @@ function renderEducation(text){
     </div>
   `).join('')}</div>`;
 }
+
+// ===== 新着情報 =====
+function safeUrl(u){
+  try{ const x = new URL(String(u||''), 'https://example.invalid'); return (x.protocol==='https:'||x.protocol==='http:') && x.hostname!=='example.invalid' ? x.href : ''; }
+  catch(e){ return ''; }
+}
+function feedDate(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+function feedToday(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function feedDaysLeft(s){
+  const d = feedDate(s); if(!d) return null;
+  return Math.round((d - feedToday()) / 86400000);
+}
+function feedIsOpenGrade(it){ return it.gradYear==='29卒' || it.gradYear==='学年不問'; }
+function feedRank(it){
+  const dl = feedDaysLeft(it.deadline);
+  let score = 0;
+  if(it.type==='info') return -1;
+  if(feedIsOpenGrade(it)) score += 100;
+  if(it.myCompany) score += 40;
+  if(dl !== null) score += Math.max(0, 30 - dl);
+  const add = feedDaysLeft(it.addedAt);
+  if(add !== null && add >= -2) score += 10;
+  return score;
+}
+function feedCard(it, pick){
+  const dl = feedDaysLeft(it.deadline);
+  const add = feedDaysLeft(it.addedAt);
+  const badges = [];
+  if(add !== null && add >= -2) badges.push('<span class="fbadge new">NEW</span>');
+  const isInfo = it.type === 'info';
+  if(isInfo){}
+  else if(dl === null) badges.push('<span class="fbadge warn">締切 要確認</span>');
+  else if(dl === 0) badges.push('<span class="fbadge hot">本日締切</span>');
+  else if(dl <= 3) badges.push('<span class="fbadge hot">締切まであと' + dl + '日</span>');
+  else if(dl <= 7) badges.push('<span class="fbadge warn">締切まであと' + dl + '日</span>');
+  else badges.push('<span class="fbadge">締切まであと' + dl + '日</span>');
+  if(isInfo){}
+  else if(feedIsOpenGrade(it)) badges.push('<span class="fbadge ok">' + esc(it.gradYear) + '可</span>');
+  else badges.push('<span class="fbadge warn">' + esc(it.gradYear || '対象卒年 要確認') + (it.gradYear==='28卒' ? '向け（29卒は要確認）' : '') + '</span>');
+  if(it.myCompany) badges.push('<span class="fbadge mine">志望企業</span>');
+  if(it.verified === false) badges.push('<span class="fbadge warn">未確認情報</span>');
+  const typeLabel = {intern:'インターン', event:'イベント・説明会', selection:'選考', info:'お知らせ'}[it.type] || 'その他';
+  const url = safeUrl(it.url);
+  const infos = [];
+  infos.push('<span>' + esc(typeLabel) + '</span>');
+  if(it.eventDate) infos.push('<span>開催：' + esc(it.eventDate) + '</span>');
+  if(it.place) infos.push('<span>場所：' + esc(it.place) + '</span>');
+  if(dl !== null) infos.push('<span>締切：' + esc(it.deadline) + '</span>');
+  return `<div class="feed-card${pick?' pick':''}">
+    <div class="feed-top">${badges.join('')}</div>
+    ${it.company ? `<div class="feed-company">${esc(it.company)}</div>` : ''}
+    <h3 class="feed-title">${esc(it.title)}</h3>
+    <div class="feed-info">${infos.join('')}</div>
+    ${it.reason ? `<p class="feed-reason">${nl2br(it.reason)}</p>` : ''}
+    <div class="feed-foot">
+      <span class="feed-src">出典：${esc(it.source || '要確認')}${it.addedAt ? '／掲載 ' + esc(it.addedAt) : ''}</span>
+      ${url ? `<a class="feed-cta" href="${esc(url)}" target="_blank" rel="noopener noreferrer">詳細を見る</a>` : ''}
+    </div>
+  </div>`;
+}
+function renderFeed(){
+  const head = '<div class="section-head"><h1>新着情報</h1><p>志望条件に合うインターン・イベントを毎日自動で集めて、ここに載せる</p></div>';
+  if(feedLoadError) return head + '<div class="empty">新着情報の読み込みに失敗した。少し待ってから再読み込みしてみて</div>';
+  if(!feedData) return head + '<div class="empty">まだ新着情報はない。最初の自動収集が終わるとここに出る</div>';
+  const items = (feedData.items || []).filter(it => it && it.title);
+  const open = items.filter(it => { const dl = feedDaysLeft(it.deadline); return dl === null || dl >= 0; });
+  const hidden = items.length - open.length;
+  const upd = feedData.updatedAt || '';
+  const updDays = feedDaysLeft(upd);
+  const stale = (updDays !== null && updDays <= -3) ? '<div class="feed-stale">最終収集から' + (-updDays) + '日たってる。自動収集が止まってるかもしれないから確認してね</div>' : '';
+  const note = feedData.note ? '<div class="feed-note">' + esc(feedData.note) + '</div>' : '';
+  const sorted = open.slice().sort((a,b)=>feedRank(b) - feedRank(a));
+  const picks = sorted.filter(it=>it.type!=='info').slice(0, 3);
+  const f = feedFilter;
+  const filtered = sorted.filter(it=>{
+    const dl = feedDaysLeft(it.deadline);
+    if(f==='soon') return dl !== null && dl <= 7;
+    if(f==='intern') return it.type==='intern';
+    if(f==='event') return it.type==='event';
+    if(f==='mine') return !!it.myCompany;
+    if(f==='open') return feedIsOpenGrade(it);
+    return true;
+  });
+  const chips = [['all','すべて'],['soon','締切が近い'],['open','29卒可'],['intern','インターン'],['event','イベント・説明会'],['mine','志望企業']]
+    .map(([k,l])=>`<button type="button" class="feed-chip ${f===k?'active':''}" data-f="${k}">${l}</button>`).join('');
+  return head + `
+    <div class="feed-meta"><span>最終収集：${esc(upd || '要確認')}</span><span>掲載中 ${open.length}件</span>${hidden ? `<span>締切済み ${hidden}件は非表示</span>` : ''}</div>
+    ${stale}${note}
+    ${picks.length ? `<h3 class="feed-h">今日の注目 <small>対象卒年・締切・志望企業から自動で並べてる</small></h3><div class="feed-pick">${picks.map(it=>feedCard(it,true)).join('')}</div>` : ''}
+    <h3 class="feed-h">募集・イベント一覧</h3>
+    <div class="feed-chips">${chips}</div>
+    ${filtered.length ? `<div class="feed-list">${filtered.map(it=>feedCard(it,false)).join('')}</div>` : '<div class="empty">この条件の募集はいまない</div>'}
+  `;
+}
+
 function renderSelf(){
   const s = data.self || {};
   const g = s.gakuchika || [];
