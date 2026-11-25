@@ -295,6 +295,7 @@
     .sidebar .brand, .sidebar .updated, .tab-indicator{display:none;}
     .tab-btn{border-radius:6px; white-space:nowrap;}
     .main{padding:26px 18px 54px;}
+    .logout-link{white-space:nowrap; order:99; margin:0 0 0 8px; flex-shrink:0; align-self:center;}
 
     /* 企業一覧：テーブルをカード形式に切り替え、横スクロールをなくす */
     .co-stats{grid-template-columns:repeat(2,1fr);}
@@ -353,6 +354,46 @@
   .feed-cta{display:inline-block; background:var(--accent-cyan); color:#101010; font-weight:700; font-size:12.5px; text-decoration:none; border-radius:8px; padding:8px 16px;}
   .feed-cta:hover{filter:brightness(1.1);}
   @media (max-width:760px){ .feed-pick{grid-template-columns:1fr;} .feed-foot{flex-direction:column; align-items:stretch;} .feed-cta{text-align:center;} }
+
+
+  /* --- TOP5 カルーセル --- */
+  .topc{margin:6px 0 10px;}
+  .topc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .topc-ctrl{display:flex; gap:8px;}
+  .topc-ctrl button{width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--ink); font-size:20px; line-height:1; cursor:pointer; transition:all .15s ease;}
+  .topc-ctrl button:hover{border-color:var(--accent-cyan); color:var(--accent-cyan);}
+  .topc-track{display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding:10px 8% 16px; scrollbar-width:none; -webkit-overflow-scrolling:touch; outline:none;}
+  .topc-track::-webkit-scrollbar{display:none;}
+  .topc-slide{position:relative; flex:0 0 min(84%,640px); scroll-snap-align:center; border-radius:18px; padding:24px 26px 24px; overflow:hidden; min-height:300px;
+    background:radial-gradient(120% 140% at 0% 0%, hsl(var(--h) 70% 22% / .55), transparent 60%), linear-gradient(160deg, var(--surface-2), var(--card));
+    border:1px solid var(--border); transform:scale(.93); opacity:.55; transition:transform .45s cubic-bezier(.16,1,.3,1), opacity .35s ease, border-color .3s ease, box-shadow .35s ease;}
+  .topc-slide.on{transform:scale(1); opacity:1; border-color:hsl(var(--h) 80% 62%); box-shadow:0 18px 50px -20px hsl(var(--h) 90% 55% / .55);}
+  .topc-rank{position:absolute; right:14px; bottom:-26px; font-size:150px; font-weight:700; line-height:1; letter-spacing:-.05em; color:transparent; -webkit-text-stroke:1.5px hsl(var(--h) 80% 70% / .28); pointer-events:none; user-select:none;}
+  .topc-body{position:relative; display:flex; flex-direction:column; gap:10px; max-width:calc(100% - 96px); align-items:flex-start;}
+  .topc-tags{display:flex; flex-wrap:wrap; gap:6px;}
+  .topc-title{font-size:clamp(18px,2.6vw,24px); font-weight:700; line-height:1.45; margin:0; color:var(--ink);}
+  .topc-reason{font-size:13px; line-height:1.8; color:var(--ink-soft); margin:0;}
+  .topc-factors{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 16px; width:100%; max-width:360px; margin:4px 0 6px;}
+  .tf{display:flex; flex-direction:column; gap:3px; font-size:10.5px; color:var(--ink-faint); letter-spacing:.04em;}
+  .tf i{display:block; height:4px; border-radius:3px; background:var(--border-soft); position:relative; overflow:hidden;}
+  .tf i::after{content:""; position:absolute; inset:0 auto 0 0; width:0; background:hsl(var(--h) 85% 62%); border-radius:3px; transition:width .8s cubic-bezier(.16,1,.3,1) .1s;}
+  .topc-slide.on .tf i::after{width:var(--v);}
+  .topc-ring{position:absolute; top:20px; right:20px; width:76px; height:76px; display:flex; flex-direction:column; align-items:center; justify-content:center; isolation:isolate;}
+  .topc-ring::before{content:""; position:absolute; inset:0; border-radius:50%; z-index:-1;
+    background:conic-gradient(hsl(var(--h) 85% 62%) calc(var(--p) * 1%), var(--border-soft) 0); -webkit-mask:radial-gradient(farthest-side, transparent 66%, #000 68%); mask:radial-gradient(farthest-side, transparent 66%, #000 68%);}
+  .topc-ring b{font-size:22px; line-height:1; color:var(--ink);}
+  .topc-ring small{font-size:8.5px; letter-spacing:.14em; color:var(--ink-faint); margin-top:3px;}
+  .topc-dots{display:flex; justify-content:center; gap:8px; margin-top:2px;}
+  .topc-dots button{width:8px; height:8px; padding:0; border-radius:8px; border:0; background:var(--border); cursor:pointer; transition:all .25s ease;}
+  .topc-dots button.on{width:26px; background:var(--accent-cyan);}
+  @media (max-width:760px){
+    .topc-track{padding:10px 6% 16px;}
+    .topc-slide{flex-basis:88%; padding:20px 18px; min-height:320px;}
+    .topc-body{max-width:100%; padding-top:64px;}
+    .topc-ring{top:16px; right:16px;}
+    .topc-rank{font-size:110px;}
+  }
+  @media (prefers-reduced-motion:reduce){ .topc-slide,.tf i::after{transition:none;} }
 
   .login-box{max-width:420px; margin:60px auto; padding:26px; background:var(--card); border:1px solid var(--border); border-radius:12px;}
   .login-box h2{margin:0 0 8px; font-size:17px;}
@@ -594,6 +635,7 @@ function render(skipAnim){
   else if(currentTab==='skill') main.innerHTML = renderSkill();
   else if(currentTab==='interview') main.innerHTML = renderInterviewPrep();
   else if(currentTab==='calendar') main.innerHTML = renderCalendar();
+  if(currentTab==='feed') initTopCarousel(); else stopTopCarousel();
   if(!skipAnim){
     main.classList.remove('fade-out');
     void main.offsetWidth;
@@ -657,17 +699,25 @@ function feedDaysLeft(s){
   return Math.round((d - feedToday()) / 86400000);
 }
 function feedIsOpenGrade(it){ return it.gradYear==='29卒' || it.gradYear==='学年不問'; }
-function feedRank(it){
+function feedScore(it){
   const dl = feedDaysLeft(it.deadline);
-  let score = 0;
-  if(it.type==='info') return -1;
-  if(feedIsOpenGrade(it)) score += 100;
-  if(it.myCompany) score += 40;
-  if(dl !== null) score += Math.max(0, 30 - dl);
   const add = feedDaysLeft(it.addedAt);
-  if(add !== null && add >= -2) score += 10;
-  return score;
+  const clamp = (v)=>Math.max(1, Math.min(5, Number(v)||3));
+  const imp = clamp(it.importance), mat = clamp(it.match);
+  // 期限(30) 新しさ(15) 重要度(30) 興味との一致(25)
+  let dlP = 8;
+  if(dl !== null) dlP = dl<=3 ? 30 : dl<=7 ? 24 : dl<=14 ? 16 : 8;
+  const recP = (add===null) ? 2 : add>=-2 ? 15 : add>=-7 ? 8 : 2;
+  const impP = imp*6, matP = mat*5;
+  let total = dlP + recP + impP + matP;
+  if(it.type!=='info' && !feedIsOpenGrade(it)) total -= 15;
+  if(it.myCompany) total += 5;
+  total = Math.max(0, Math.min(100, total));
+  return { total, parts:[
+    ['期限', dlP/30], ['新しさ', recP/15], ['重要度', impP/30], ['一致度', matP/25]
+  ]};
 }
+function feedRank(it){ return feedScore(it).total; }
 function feedCard(it, pick){
   const dl = feedDaysLeft(it.deadline);
   const add = feedDaysLeft(it.addedAt);
@@ -704,6 +754,79 @@ function feedCard(it, pick){
     </div>
   </div>`;
 }
+
+function topCarousel(picks){
+  const slides = picks.map((it,i)=>{
+    const sc = feedScore(it);
+    const dl = feedDaysLeft(it.deadline);
+    const url = safeUrl(it.url);
+    const typeLabel = {intern:'インターン', event:'イベント・説明会', selection:'選考', info:'まず見る'}[it.type] || 'その他';
+    const limit = (it.type==='info') ? '' : (dl===null ? '締切 要確認' : dl===0 ? '本日締切' : 'あと' + dl + '日');
+    const grade = (it.type==='info') ? '' : (feedIsOpenGrade(it) ? esc(it.gradYear) + '可' : esc(it.gradYear || '卒年 要確認'));
+    return `<article class="topc-slide" data-i="${i}" style="--h:${200 + i*28}">
+      <div class="topc-rank" aria-hidden="true">${String(i+1).padStart(2,'0')}</div>
+      <div class="topc-body">
+        <div class="topc-tags"><span class="fbadge">${esc(typeLabel)}</span>${limit?`<span class="fbadge ${dl!==null&&dl<=3?'hot':'warn'}">${limit}</span>`:''}${grade?`<span class="fbadge ${feedIsOpenGrade(it)?'ok':'warn'}">${grade}</span>`:''}${it.myCompany?'<span class="fbadge mine">志望企業</span>':''}</div>
+        ${it.company?`<div class="feed-company">${esc(it.company)}</div>`:''}
+        <h3 class="topc-title">${esc(it.title)}</h3>
+        ${it.reason?`<p class="topc-reason">${esc(it.reason)}</p>`:''}
+        <div class="topc-factors">${sc.parts.map(([n,v])=>`<div class="tf"><span>${n}</span><i style="--v:${Math.round(v*100)}%"></i></div>`).join('')}</div>
+        ${url?`<a class="feed-cta" href="${esc(url)}" target="_blank" rel="noopener noreferrer">詳細を見る</a>`:''}
+      </div>
+      <div class="topc-ring" style="--p:${sc.total}" title="総合スコア"><b>${sc.total}</b><small>SCORE</small></div>
+    </article>`;
+  }).join('');
+  return `<section class="topc" id="topc" aria-label="注目TOP5">
+    <div class="topc-head"><h3 class="feed-h" style="margin:0;">TOP5 <small>期限・新しさ・重要度・興味との一致で並べてる</small></h3>
+      <div class="topc-ctrl"><button type="button" id="topcPrev" aria-label="前へ">‹</button><button type="button" id="topcNext" aria-label="次へ">›</button></div></div>
+    <div class="topc-track" id="topcTrack" tabindex="0">${slides}</div>
+    <div class="topc-dots" id="topcDots">${picks.map((_,i)=>`<button type="button" data-i="${i}" aria-label="${i+1}位へ"></button>`).join('')}</div>
+  </section>`;
+}
+let topcTimer = null;
+function stopTopCarousel(){ if(topcTimer){ clearInterval(topcTimer); topcTimer = null; } }
+function initTopCarousel(){
+  stopTopCarousel();
+  const track = document.getElementById('topcTrack');
+  if(!track) return;
+  const slides = [...track.querySelectorAll('.topc-slide')];
+  const dots = [...document.querySelectorAll('#topcDots button')];
+  let cur = 0, userTouched = false;
+  const setActive = (i)=>{
+    cur = i;
+    slides.forEach((el,k)=>el.classList.toggle('on', k===i));
+    dots.forEach((el,k)=>el.classList.toggle('on', k===i));
+  };
+  const goTo = (i, smooth)=>{
+    i = (i + slides.length) % slides.length;
+    const el = slides[i];
+    const left = el.offsetLeft - (track.clientWidth - el.clientWidth)/2;
+    if(track.scrollTo) track.scrollTo({left: Math.max(0,left), behavior: smooth===false ? 'auto' : 'smooth'});
+    setActive(i);
+  };
+  const near = ()=>{
+    const c = track.scrollLeft + track.clientWidth/2;
+    let best = 0, bd = Infinity;
+    slides.forEach((el,k)=>{ const d = Math.abs(el.offsetLeft + el.clientWidth/2 - c); if(d < bd){ bd = d; best = k; } });
+    if(best !== cur) setActive(best);
+  };
+  track.addEventListener('scroll', ()=>{ window.requestAnimationFrame(near); }, {passive:true});
+  const stop = ()=>{ userTouched = true; stopTopCarousel(); };
+  document.getElementById('topcPrev').addEventListener('click', ()=>{ stop(); goTo(cur-1); });
+  document.getElementById('topcNext').addEventListener('click', ()=>{ stop(); goTo(cur+1); });
+  dots.forEach((b,k)=>b.addEventListener('click', ()=>{ stop(); goTo(k); }));
+  track.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowLeft'){ stop(); goTo(cur-1); e.preventDefault(); }
+    if(e.key==='ArrowRight'){ stop(); goTo(cur+1); e.preventDefault(); }
+  });
+  ['pointerdown','touchstart','wheel','focusin'].forEach(ev=>track.addEventListener(ev, stop, {passive:true}));
+  setActive(0);
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(slides.length > 1 && !reduce){
+    topcTimer = setInterval(()=>{ if(!userTouched && !document.hidden) goTo(cur+1); }, 6500);
+  }
+}
+
 function renderFeed(){
   const head = '<div class="section-head"><h1>新着情報</h1><p>志望条件に合うインターン・イベントを毎日自動で集めて、ここに載せる</p></div>';
   if(feedLoadError) return head + '<div class="empty">新着情報の読み込みに失敗した。少し待ってから再読み込みしてみて</div>';
@@ -713,10 +836,10 @@ function renderFeed(){
   const hidden = items.length - open.length;
   const upd = feedData.updatedAt || '';
   const updDays = feedDaysLeft(upd);
-  const stale = (updDays !== null && updDays <= -3) ? '<div class="feed-stale">最終収集から' + (-updDays) + '日たってる。自動収集が止まってるかもしれないから確認してね</div>' : '';
+  const stale = (updDays !== null && updDays <= -5) ? '<div class="feed-stale">最終収集から' + (-updDays) + '日たってる。自動収集が止まってるかもしれないから確認してね</div>' : '';
   const note = feedData.note ? '<div class="feed-note">' + esc(feedData.note) + '</div>' : '';
   const sorted = open.slice().sort((a,b)=>feedRank(b) - feedRank(a));
-  const picks = sorted.filter(it=>it.type!=='info').slice(0, 3);
+  const picks = sorted.slice(0, 5);
   const f = feedFilter;
   const filtered = sorted.filter(it=>{
     const dl = feedDaysLeft(it.deadline);
@@ -732,7 +855,7 @@ function renderFeed(){
   return head + `
     <div class="feed-meta"><span>最終収集：${esc(upd || '要確認')}</span><span>掲載中 ${open.length}件</span>${hidden ? `<span>締切済み ${hidden}件は非表示</span>` : ''}</div>
     ${stale}${note}
-    ${picks.length ? `<h3 class="feed-h">今日の注目 <small>対象卒年・締切・志望企業から自動で並べてる</small></h3><div class="feed-pick">${picks.map(it=>feedCard(it,true)).join('')}</div>` : ''}
+    ${picks.length ? topCarousel(picks) : ''}
     <h3 class="feed-h">募集・イベント一覧</h3>
     <div class="feed-chips">${chips}</div>
     ${filtered.length ? `<div class="feed-list">${filtered.map(it=>feedCard(it,false)).join('')}</div>` : '<div class="empty">この条件の募集はいまない</div>'}
